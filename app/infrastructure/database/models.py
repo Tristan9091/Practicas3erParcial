@@ -58,3 +58,38 @@ class UsuarioModel(Base):
     rol = Column(String(50), nullable=False)
     hashed_password = Column(String(255), nullable=False)
     fecha_registro = Column(DateTime, default=datetime.now)
+
+
+class FaqModel(Base):
+    __tablename__ = "faqs"
+
+    id = Column(String(36), primary_key=True)
+    pregunta = Column(String(500), nullable=False)
+    respuesta = Column(Text, nullable=False)
+    categoria = Column(String(100), default="general")
+    palabras_clave = Column(JSON, default=list)
+
+
+class ConversacionModel(Base):
+    __tablename__ = "conversaciones"
+
+    id = Column(String(36), primary_key=True)
+    cliente_id = Column(String(36), nullable=False)
+    estado = Column(String(50), default="abierta")
+    creada_en = Column(DateTime, default=datetime.now)
+    mensajes = relationship(
+        "MensajeChatModel",
+        back_populates="conversacion",
+        order_by="MensajeChatModel.timestamp",
+    )
+
+
+class MensajeChatModel(Base):
+    __tablename__ = "mensajes_chat"
+
+    id = Column(String(36), primary_key=True)
+    conversacion_id = Column(String(36), ForeignKey("conversaciones.id"), nullable=False)
+    autor = Column(String(20), nullable=False)
+    contenido = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=datetime.now)
+    conversacion = relationship("ConversacionModel", back_populates="mensajes")
