@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel,  EmailStr
+from pydantic import BaseModel,  EmailStr, Field
 from sqlalchemy.orm import Session
 from app.infrastructure.database.base import get_db
 from app.infrastructure.repositories.usuario_repository_sql import UsuarioRepositorySQL
@@ -10,10 +10,10 @@ from app.security.jwt_handler import crear_access_token, crear_refresh_token, ve
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 class RegisterRequest(BaseModel):
-    nombre: str
+    nombre: str = Field(min_length=1, max_length=100)
     email: EmailStr
-    password: str
-    rol: str = "cliente"
+    password: str = Field(min_length=6)
+    rol: str = Field(default="cliente", pattern="^(admin|operador|cliente)$")
 
 class LoginRequest(BaseModel):
     email: str

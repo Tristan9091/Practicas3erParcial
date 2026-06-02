@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 from app.adapters.http.dependencies import get_current_user
 from sqlalchemy.orm import Session
@@ -12,10 +12,10 @@ from app.application.use_cases.orden_compra_use_cases import (
 orden_compra_router = APIRouter()
 
 class OrdenItemRequest(BaseModel):
-    producto_id: str
-    nombre_producto: str
-    precio_unitario: float
-    cantidad: int
+    producto_id: str = Field(min_length=1)
+    nombre_producto: str = Field(min_length=1, max_length=255)
+    precio_unitario: float = Field(gt=0)
+    cantidad: int = Field(ge=1)
 
 class OrdenCompraRequest(BaseModel):
     perfil_id: str

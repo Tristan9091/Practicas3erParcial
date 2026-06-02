@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.adapters.http.dependencies import get_current_user, require_admin, require_operador_o_admin
@@ -14,19 +14,19 @@ from app.application.use_cases.producto_use_cases import (
 producto_router = APIRouter()
 
 class ProductoRequest(BaseModel):
-    nombre: str
-    descripcion: str = ""
-    vendedor: str = ""
-    precio: float
-    stock: int = 0
+    nombre: str = Field(min_length=1, max_length=255)
+    descripcion: str = Field(default="", max_length=1000)
+    vendedor: str = Field(default="", max_length=255)
+    precio: float = Field(gt=0)
+    stock: int = Field(default=0, ge=0)
     imagenes: List[str] = []
 
 class ProductoUpdateRequest(BaseModel):
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
-    vendedor: Optional[str] = None
-    precio: Optional[float] = None
-    stock: Optional[int] = None
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    descripcion: Optional[str] = Field(default=None, max_length=1000)
+    vendedor: Optional[str] = Field(default=None, max_length=255)
+    precio: Optional[float] = Field(default=None, gt=0)
+    stock: Optional[int] = Field(default=None, ge=0)
     imagenes: Optional[List[str]] = None
 
 @producto_router.post("/productos")
