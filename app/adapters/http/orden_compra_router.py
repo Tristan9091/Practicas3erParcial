@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List
+from app.adapters.http.dependencies import get_current_user
 from sqlalchemy.orm import Session
 from app.infrastructure.database.base import get_db
 from app.infrastructure.repositories.orden_compra_repository_sql import OrdenCompraRepositorySQL
@@ -23,7 +24,7 @@ class OrdenCompraRequest(BaseModel):
     metodo_pago: str = ""
 
 @orden_compra_router.post("/ordenes")
-def crear_orden(request: OrdenCompraRequest, db: Session = Depends(get_db)):
+def crear_orden(request: OrdenCompraRequest, db: Session = Depends(get_db), usuario = Depends(get_current_user)):
     return CrearOrdenCompra(OrdenCompraRepositorySQL(db)).ejecutar(
         perfil_id=request.perfil_id,
         items=[{
@@ -37,18 +38,18 @@ def crear_orden(request: OrdenCompraRequest, db: Session = Depends(get_db)):
     )
 
 @orden_compra_router.get("/ordenes/{id}")
-def obtener_orden(id: str, db: Session = Depends(get_db)):
+def obtener_orden(id: str, db: Session = Depends(get_db), usuario = Depends(get_current_user)):
     try:
         return ObtenerOrdenCompra(OrdenCompraRepositorySQL(db)).ejecutar(id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 @orden_compra_router.get("/ordenes/perfil/{perfil_id}")
-def listar_ordenes_por_perfil(perfil_id: str, db: Session = Depends(get_db)):
+def listar_ordenes_por_perfil(perfil_id: str, db: Session = Depends(get_db), usuario = Depends(get_current_user)):
     return ListarOrdenesPorPerfil(OrdenCompraRepositorySQL(db)).ejecutar(perfil_id)
 
 @orden_compra_router.patch("/ordenes/{id}/cancelar")
-def cancelar_orden(id: str, db: Session = Depends(get_db)):
+def cancelar_orden(id: str, db: Session = Depends(get_db), usuario = Depends(get_current_user)):
     try:
         return CancelarOrden(OrdenCompraRepositorySQL(db)).ejecutar(id)
     except ValueError as e:

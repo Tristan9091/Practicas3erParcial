@@ -48,3 +48,13 @@ class OrdenItemModel(Base):
     precio_unitario = Column(Float, nullable=False)
     cantidad = Column(Integer, nullable=False)
     orden = relationship("OrdenCompraModel", back_populates="items")
+
+class UsuarioModel(Base):
+    __tablename__ = "usuarios"
+
+    id= Column(String(36), primary_key=True)
+    nombre = Column(String(100), nullable=False)
+    email = Column(String(255), nullable=False, unique=True)
+    rol = Column(String(50), nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    fecha_registro = Column(DateTime, default=datetime.now)

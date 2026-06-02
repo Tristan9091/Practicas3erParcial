@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from app.adapters.http.dependencies import get_current_user, require_admin, require_operador_o_admin
 from app.infrastructure.database.base import get_db
 from app.infrastructure.repositories.producto_repository_sql import ProductoRepositorySQL
 from app.application.use_cases.producto_use_cases import (
@@ -29,7 +30,7 @@ class ProductoUpdateRequest(BaseModel):
     imagenes: Optional[List[str]] = None
 
 @producto_router.post("/productos")
-def crear_producto(request: ProductoRequest, db: Session = Depends(get_db)):
+def crear_producto(request: ProductoRequest, db: Session = Depends(get_db), usuario = Depends(require_admin)):
     repositorio = ProductoRepositorySQL(db)
     return CrearProductos(repositorio).ejecutar(
         nombre=request.nombre,
@@ -53,14 +54,14 @@ def filtrar_por_precio(precio_min: float, precio_max: float, db: Session = Depen
     return FiltrarProductosPorPrecio(ProductoRepositorySQL(db)).ejecutar(precio_min, precio_max)
 
 @producto_router.get("/productos/{id}")
-def obtener_producto(id: str, db: Session = Depends(get_db)):
+def obtener_producto(id: str, db: Session = Depends(get_db), usuario = Depends(get_current_user)):
     try:
         return ObtenerProducto(ProductoRepositorySQL(db)).ejecutar(id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 @producto_router.put("/productos/{id}")
-def actualizar_producto(id: str, request: ProductoUpdateRequest, db: Session = Depends(get_db)):
+def actualizar_producto(id: str, request: ProductoUpdateRequest, db: Session = Depends(get_db), usuario = Depends(require_operador_o_admin)):
     try:
         return ActualizarProducto(ProductoRepositorySQL(db)).ejecutar(
             id=id,
@@ -75,6 +76,6 @@ def actualizar_producto(id: str, request: ProductoUpdateRequest, db: Session = D
         raise HTTPException(status_code=404, detail=str(e))
 
 @producto_router.delete("/productos/{id}")
-def eliminar_producto(id: str, db: Session = Depends(get_db)):
+def eliminar_producto(id: str, db: Session = Depends(get_db), usuario = Depends(require_admin)):
     EliminarProducto(ProductoRepositorySQL(db)).ejecutar(id)
     return {"message": "Producto eliminado correctamente"}

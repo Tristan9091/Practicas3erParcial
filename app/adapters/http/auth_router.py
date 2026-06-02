@@ -1,0 +1,61 @@
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from app.infrastructure.database.base import get_db
+from app.infrastructure.repositories.usuario_repository_sql import UsuarioRepositorySQL
+from app.application.use_cases.auth_use_cases import RegistrarUsuario, LoginUsuario
+from app.security.jwt_handler import crear_access_token, crear_refresh_token, verificar_token
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+class RegisterRequest(BaseModel):
+    nombre: str
+    email: str
+    password: str
+    rol: str = "cliente"
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+@router.post("/register")
+def register(user: RegisterRequest, db: Session = Depends(get_db)):
+    try:
+        usuario_repository = UsuarioRepositorySQL(db)
+        registrar_usuario = RegistrarUsuario(usuario_repository)
+        nuevo_usuario = registrar_usuario.ejecutar(
+            nombre=user.nombre,
+            email=user.email,
+            password=user.password,
+            rol=user.rol
+        )
+        return {"message": "Usuario registrado exitosamente", "usuario_id": nuevo_usuario.id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.post("/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    try:
+        usuario_repository = UsuarioRepositorySQL(db)
+        login_usuario = LoginUsuario(usuario_repository)
+        usuario = login_usuario.ejecutar(email=form_data.username, password=form_data.password)
+        access_token = crear_access_token(data={"sub": usuario.email, "rol": usuario.rol})
+        refresh_token = crear_refresh_token(data={"sub": usuario.email, "rol": usuario.rol})
+        return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) 
+    
+@router.post("/refresh")
+def refresh_token(request: RefreshRequest):
+    payload = verificar_token(request.refresh_token)
+    if not payload or payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Token de refresco inválido o expirado")
+    email = payload.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="Token de refresco inválido")
+    new_access_token = crear_access_token(data={"sub": email})
+    return {"access_token": new_access_token, "token_type": "bearer"}
