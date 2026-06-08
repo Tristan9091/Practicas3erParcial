@@ -38,7 +38,6 @@ document.getElementById("btn-registro").addEventListener("click", async () => {
   const nombre = document.getElementById("reg-nombre").value.trim();
   const email = document.getElementById("reg-email").value.trim();
   const password = document.getElementById("reg-password").value;
-  const rol = document.getElementById("reg-rol").value;
 
   if (!nombre || !email || !password) {
     mostrarMensaje("Completa todos los campos");
@@ -50,7 +49,7 @@ document.getElementById("btn-registro").addEventListener("click", async () => {
   }
 
   try {
-    await registrar(nombre, email, password, rol);
+    await registrar(nombre, email, password);
     const data = await login(email, password);
     guardarSesion(data);
     redirigirPorRol();
