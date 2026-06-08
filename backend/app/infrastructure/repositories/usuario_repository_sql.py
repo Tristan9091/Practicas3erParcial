@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from app.domain.ports.usuario_repository import UsuarioRepository
 from app.domain.entities.usuario import Usuario
 from app.infrastructure.database.models import UsuarioModel
-from typing import Optional
+from typing import Optional, List
 
 class UsuarioRepositorySQL(UsuarioRepository):
     def __init__(self, db: Session):
@@ -17,7 +17,7 @@ class UsuarioRepositorySQL(UsuarioRepository):
             hashed_password=model.hashed_password,
             fecha_registro=model.fecha_registro
         )
-        
+
     def guardar(self, usuario: Usuario):
         model = UsuarioModel(
             id=usuario.id,
@@ -33,12 +33,21 @@ class UsuarioRepositorySQL(UsuarioRepository):
     def obtener_por_id(self, id: str) -> Optional[Usuario]:
         model = self.db.query(UsuarioModel).filter(UsuarioModel.id == id).first()
         return self._to_entity(model) if model else None
-        
+
     def buscar_por_email(self, email: str) -> Optional[Usuario]:
         model = self.db.query(UsuarioModel).filter(UsuarioModel.email == email).first()
         return self._to_entity(model) if model else None
-        
+
     def buscar_por_nombre(self, nombre: str) -> Optional[Usuario]:
         model = self.db.query(UsuarioModel).filter(UsuarioModel.nombre == nombre).first()
         return self._to_entity(model) if model else None
-        
+
+    def listar_todos(self) -> List[Usuario]:
+        return [self._to_entity(m) for m in self.db.query(UsuarioModel).all()]
+
+    def actualizar(self, usuario: Usuario):
+        model = self.db.query(UsuarioModel).filter(UsuarioModel.id == usuario.id).first()
+        if model:
+            model.nombre = usuario.nombre
+            model.rol = usuario.rol
+            self.db.commit()
