@@ -58,3 +58,11 @@ class UsuarioModel(Base):
     rol = Column(String(50), nullable=False)
     hashed_password = Column(String(255), nullable=False)
     fecha_registro = Column(DateTime, default=datetime.now)
+
+class FaqModel(Base):
+    __tablename__ = "faqs"
+
+    id = Column(String(36), primary_key=True)
+    pregunta = Column(String(500), nullable=False)
+    respuesta = Column(Text, nullable=False)
+    palabras_clave = Column(JSON, default=list)
