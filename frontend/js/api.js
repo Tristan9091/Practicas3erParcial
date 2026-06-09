@@ -15,7 +15,12 @@ async function request(metodo, ruta, { body = null, auth = false } = {}) {
   if (!respuesta.ok) {
     let detalle = "Error en la petición";
     try {
-      detalle = (await respuesta.json()).detail || detalle;
+      const data = await respuesta.json();
+      if (Array.isArray(data.detail)) {
+        detalle = data.detail.map((e) => e.msg).join(", ");
+      } else if (data.detail) {
+        detalle = data.detail;
+      }
     } catch (e) {}
     throw new Error(detalle);
   }
