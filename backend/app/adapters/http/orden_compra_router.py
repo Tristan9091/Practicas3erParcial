@@ -4,6 +4,7 @@ from typing import List
 from app.adapters.http.dependencies import get_current_user, require_operador_o_admin
 from sqlalchemy.orm import Session
 from app.infrastructure.database.base import get_db
+from app.infrastructure.repositories.producto_repository_sql import ProductoRepositorySQL
 from app.infrastructure.repositories.orden_compra_repository_sql import OrdenCompraRepositorySQL
 from app.application.use_cases.orden_compra_use_cases import (
     CrearOrdenCompra, ObtenerOrdenCompra, ListarOrdenesPorPerfil, CancelarOrden,
@@ -29,17 +30,23 @@ class EstadoUpdateRequest(BaseModel):
 
 @orden_compra_router.post("/ordenes")
 def crear_orden(request: OrdenCompraRequest, db: Session = Depends(get_db), usuario = Depends(get_current_user)):
-    return CrearOrdenCompra(OrdenCompraRepositorySQL(db)).ejecutar(
-        perfil_id=request.perfil_id,
-        items=[{
-            'producto_id': item.producto_id,
-            'nombre_producto': item.nombre_producto,
-            'precio_unitario': item.precio_unitario,
-            'cantidad': item.cantidad
-        } for item in request.items],
-        direccion_envio=request.direccion_envio,
-        metodo_pago=request.metodo_pago
-    )
+    try:
+        return CrearOrdenCompra(
+            OrdenCompraRepositorySQL(db),
+            ProductoRepositorySQL(db)
+        ).ejecutar(
+            perfil_id=request.perfil_id,
+            items=[{
+                'producto_id': item.producto_id,
+                'nombre_producto': item.nombre_producto,
+                'precio_unitario': item.precio_unitario,
+                'cantidad': item.cantidad
+            } for item in request.items],
+            direccion_envio=request.direccion_envio,
+            metodo_pago=request.metodo_pago
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # Listado de TODAS las ordenes: solo operador/admin (gestion de ordenes del backoffice)
 @orden_compra_router.get("/ordenes")

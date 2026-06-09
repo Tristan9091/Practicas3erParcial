@@ -2,10 +2,27 @@ import uuid
 from app.domain.entities.orden_compra import OrdenCompra, OrdenItem
 
 class CrearOrdenCompra:
-    def __init__(self, orden_compra_repository):
+    def __init__(self, orden_compra_repository, producto_repository):
         self.orden_compra_repository = orden_compra_repository
+        self.producto_repository = producto_repository
 
     def ejecutar(self, perfil_id, items, direccion_envio="", metodo_pago=""):
+        productos = {}
+        for item in items:
+            producto = self.producto_repository.obtener_por_id(item['producto_id'])
+            if not producto:
+                raise ValueError(f"Producto no encontrado: {item['nombre_producto']}")
+            if producto.stock < item['cantidad']:
+                raise ValueError(
+                    f"Stock insuficiente de {producto.nombre} (disponible: {producto.stock})"
+                )
+            productos[item['producto_id']] = producto
+
+        for item in items:
+            producto = productos[item['producto_id']]
+            producto.stock -= item['cantidad']
+            self.producto_repository.actualizar(producto)
+
         nueva_orden = OrdenCompra(
             id=str(uuid.uuid4()),
             perfil_id=perfil_id,
@@ -74,6 +91,7 @@ class ActualizarEstadoOrden:
             raise ValueError("Estado no válido")
         orden = self.orden_compra_repository.obtener_por_id(id)
         if not orden:
+
             raise ValueError("Orden de compra no encontrada")
         orden.estado = nuevo_estado
         self.orden_compra_repository.actualizar(orden)
