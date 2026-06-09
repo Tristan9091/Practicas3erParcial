@@ -1,6 +1,15 @@
 protegerPagina(["admin", "operador"]);
 document.getElementById("usuario-email").textContent = obtenerEmail();
 document.getElementById("btn-salir").addEventListener("click", cerrarSesion);
+const esAdmin = obtenerRol() === "admin";
+
+if (!esAdmin) {
+  document.getElementById("btn-nuevo-producto").classList.add("d-none");
+  const navUsuarios = document.querySelector(
+    '[data-bs-target="#tab-usuarios"]',
+  );
+  if (navUsuarios) navUsuarios.closest("li").classList.add("d-none");
+}
 
 const modalProducto = new bootstrap.Modal(
   document.getElementById("modal-producto"),
@@ -24,7 +33,7 @@ async function cargarProductos() {
       <td>${p.vendedor || "-"}</td>
       <td class="text-end">
         <button class="btn btn-sm btn-outline-primary" onclick="editarProducto('${p.id}')">Editar</button>
-        <button class="btn btn-sm btn-outline-danger" onclick="borrarProducto('${p.id}')">Eliminar</button>
+        ${esAdmin ? `<button class="btn btn-sm btn-outline-danger" onclick="borrarProducto('${p.id}')">Eliminar</button>` : ""}
       </td>
     </tr>`,
     )
@@ -232,18 +241,18 @@ async function cambiarRol(email, rol) {
 
 function conectarChatAdmin() {
   const WS_BASE = API_BASE.replace(/^http/, "ws");
-  const socket = new WebSocket(`${WS_BASE}/ws/admin`);
+  const socket = new WebSocket(`${WS_BASE}/ws/staff`);
   window._adminSocket = socket;
 
   socket.onmessage = (evento) => {
     const msg = JSON.parse(evento.data);
     if (msg.tipo === "escalamiento") {
-      agregarEscalamiento(msg.cliente_id, msg.contenido);
+      agregarEscalamiento(msg.conversacion_id, msg.cliente_id, msg.contenido);
     }
   };
 }
 
-function agregarEscalamiento(clienteId, contenido) {
+function agregarEscalamiento(conversacionId, clienteId, contenido) {
   document.getElementById("chat-admin-vacio").classList.add("d-none");
   const lista = document.getElementById("chat-admin-lista");
   const col = document.createElement("div");
@@ -265,7 +274,7 @@ function agregarEscalamiento(clienteId, contenido) {
     const texto = input.value.trim();
     if (!texto) return;
     window._adminSocket.send(
-      JSON.stringify({ cliente_id: clienteId, contenido: texto }),
+      JSON.stringify({ conversacion_id: conversacionId, contenido: texto }),
     );
     input.value = "";
     boton.textContent = "Enviado ✓";
@@ -276,5 +285,5 @@ function agregarEscalamiento(clienteId, contenido) {
 
 cargarProductos();
 cargarOrdenes();
-cargarUsuarios();
+if (esAdmin) cargarUsuarios();
 conectarChatAdmin();

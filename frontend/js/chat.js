@@ -4,49 +4,47 @@
 
   const input = document.getElementById("chat-input");
   const boton = document.getElementById("chat-enviar");
-
   const clienteId = obtenerEmail() || "invitado";
 
-  const WS_BASE = API_BASE.replace(/^http/, "ws");
   let socket;
 
-  function conectar() {
-    socket = new WebSocket(
-      `${WS_BASE}/ws/chat/${encodeURIComponent(clienteId)}`,
-    );
+  async function conectar() {
+    try {
+      const conv = await iniciarConversacion(clienteId);
+      const WS_BASE = API_BASE.replace(/^http/, "ws");
 
-    socket.onopen = () => {
-      agregarMensaje("sistema", "Conectado. ¿En qué te ayudamos?", "info");
-    };
+      socket = new WebSocket(`${WS_BASE}/ws/chat/${conv.conversacion_id}`);
 
-    socket.onmessage = (evento) => {
-      const msg = JSON.parse(evento.data);
-      agregarMensaje("asistente", msg.contenido, msg.tipo);
-    };
-
-    socket.onclose = () => {
-      agregarMensaje("sistema", "Conexión cerrada.", "info");
-    };
+      socket.onmessage = (evento) => {
+        const msg = JSON.parse(evento.data);
+        agregarMensaje(msg.autor, msg.contenido);
+      };
+      socket.onclose = () => agregarMensaje("sistema", "Conexión cerrada.");
+    } catch (e) {
+      agregarMensaje("sistema", "No se pudo conectar al chat: " + e.message);
+    }
   }
 
-  function agregarMensaje(autor, contenido, tipo) {
+  function agregarMensaje(autor, contenido) {
     const esCliente = autor === "cliente";
     const fila = document.createElement("div");
     fila.className = `d-flex mb-2 ${esCliente ? "justify-content-end" : "justify-content-start"}`;
 
     let etiqueta = "Asistente";
     if (autor === "cliente") etiqueta = "Tú";
-    else if (tipo === "humano") etiqueta = "Agente";
     else if (autor === "sistema") etiqueta = "Sistema";
+    else if (autor === "agente") etiqueta = "Agente";
 
-    const colorBurbuja = esCliente
+    const color = esCliente
       ? "bg-brand text-white"
       : autor === "sistema"
         ? "bg-light text-muted border"
-        : "bg-white border";
+        : autor === "agente"
+          ? "bg-warning-subtle border"
+          : "bg-white border";
 
     fila.innerHTML = `
-      <div class="chat-burbuja ${colorBurbuja}">
+      <div class="chat-burbuja ${color}">
         <div class="chat-autor small fw-bold">${etiqueta}</div>
         <div>${contenido}</div>
       </div>`;
@@ -58,11 +56,10 @@
     const texto = input.value.trim();
     if (!texto) return;
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-      agregarMensaje("sistema", "No hay conexión con el chat.", "info");
+      agregarMensaje("sistema", "No hay conexión con el chat.");
       return;
     }
-    agregarMensaje("cliente", texto);
-    socket.send(JSON.stringify({ contenido: texto }));
+    socket.send(texto);
     input.value = "";
   }
 

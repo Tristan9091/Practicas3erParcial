@@ -7,6 +7,7 @@ class AutorMensaje(str, Enum):
     CLIENTE = "cliente"
     ASISTENTE = "asistente"
     SISTEMA = "sistema"
+    AGENTE = "agente"
 
 
 @dataclass

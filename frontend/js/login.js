@@ -3,7 +3,8 @@ if (estaAutenticado()) {
 }
 
 function redirigirPorRol() {
-  if (obtenerRol() === "admin") {
+  const rol = obtenerRol();
+  if (rol === "admin" || rol === "operador") {
     window.location.href = "admin.html";
   } else {
     window.location.href = "index.html";

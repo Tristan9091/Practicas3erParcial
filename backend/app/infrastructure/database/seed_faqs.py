@@ -57,16 +57,16 @@ FAQS_INICIALES = [
         categoria="devoluciones",
         palabras_clave=["devolver", "devolucion", "cambio", "reembolso"],
     ),
-        FAQ(
+    FAQ(
         id=str(uuid.uuid4()),
-        pregunta="Amor",
+        pregunta="Ex de verdad",
         respuesta=(
             "Eres el peor amor que eh conocido tan perfecto que no te olvido piensa en mi ayudame "
             "a odiarte has las cosas que hacen los cobardes no me trates bien ni sonrias mas pues "
             "mi alma sigue sufriendo se un ex de verdad y tratame mal, ayudame con eso"
         ),
         categoria="devoluciones",
-        palabras_clave=["devolver", "devolucion", "cambio", "reembolso"],
+        palabras_clave=["Ex", "verdad", "Ex de verdad", "ex", "Verdad"],
     )
 ]
 

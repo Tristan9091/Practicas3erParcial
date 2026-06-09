@@ -55,6 +55,12 @@ function registrar(nombre, email, password) {
   });
 }
 
+function iniciarConversacion(clienteId) {
+  return request("POST", "/chat/conversaciones", {
+    body: { cliente_id: clienteId },
+  });
+}
+
 function listarUsuarios() {
   return request("GET", "/auth/usuarios", { auth: true });
 }

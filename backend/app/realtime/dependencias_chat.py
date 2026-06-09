@@ -12,6 +12,12 @@ from app.infrastructure.repositories.conversacion_repository_sql import (
 )
 from app.infrastructure.repositories.faq_repository_sql import FaqRepositorySQL
 
+from app.application.use_cases.chat_use_cases import (
+    IniciarConversacion,
+    ObtenerHistorial,
+    ProcesarMensajeCliente,
+    ResponderComoAgente,
+)
 
 def construir_motor(db: Session) -> MotorRespuestas:
     return MotorFaqSimple(FaqRepositorySQL(db))
@@ -30,3 +36,6 @@ def construir_iniciar_conversacion(db: Session) -> IniciarConversacion:
 
 def construir_obtener_historial(db: Session) -> ObtenerHistorial:
     return ObtenerHistorial(ConversacionRepositorySQL(db))
+
+def construir_responder_como_agente(db: Session) -> ResponderComoAgente:
+    return ResponderComoAgente(ConversacionRepositorySQL(db))

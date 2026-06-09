@@ -96,6 +96,15 @@ function cambiarCantidad(productoId, delta) {
   const carrito = obtenerCarrito();
   const item = carrito.find((i) => i.id === productoId);
   if (!item) return;
+
+  if (delta > 0) {
+    const producto = productos.find((p) => p.id === productoId);
+    if (producto && item.cantidad >= Number(producto.stock)) {
+      alert("No hay más stock disponible de este producto");
+      return;
+    }
+  }
+
   item.cantidad += delta;
   if (item.cantidad <= 0) {
     guardarCarrito(carrito.filter((i) => i.id !== productoId));

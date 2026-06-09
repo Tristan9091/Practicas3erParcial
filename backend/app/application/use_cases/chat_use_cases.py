@@ -75,3 +75,20 @@ class ObtenerHistorial:
         if not conversacion:
             raise ValueError("Conversacion no encontrada")
         return conversacion
+
+class ResponderComoAgente:
+    def __init__(self, conversacion_repository: ConversacionRepository):
+        self.conversacion_repository = conversacion_repository
+
+    def ejecutar(self, conversacion_id: str, contenido: str) -> MensajeChat:
+        conversacion = self.conversacion_repository.obtener_por_id(conversacion_id)
+        if not conversacion:
+            raise ValueError("Conversacion no encontrada")
+        mensaje = MensajeChat(
+            id=str(uuid.uuid4()),
+            conversacion_id=conversacion_id,
+            autor=AutorMensaje.AGENTE,
+            contenido=contenido,
+        )
+        self.conversacion_repository.agregar_mensaje(mensaje)
+        return mensaje
