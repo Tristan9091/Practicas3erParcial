@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PuzzleStore — Chat de soporte</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; color: #1a1a1a; }
+    h1 { font-size: 20px; }
+    #chat { border: 1px solid #ddd; border-radius: 12px; height: 420px; overflow-y: auto; padding: 12px; background: #fafafa; }
+    .msg { margin: 8px 0; display: flex; }
+    .msg .bubble { padding: 8px 12px; border-radius: 12px; max-width: 75%; line-height: 1.4; }
+    .cliente { justify-content: flex-end; }
+    .cliente .bubble { background: #2563eb; color: #fff; }
+    .asistente .bubble { background: #e9e9ef; }
+    .sistema { justify-content: center; }
+    .sistema .bubble { background: transparent; color: #777; font-size: 13px; font-style: italic; }
+    #barra { display: flex; gap: 8px; margin-top: 12px; }
+    #texto { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
+    button { padding: 10px 16px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; cursor: pointer; }
+    button:disabled { background: #aaa; }
+    #estado { font-size: 13px; color: #777; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Chat de soporte — PuzzleStore</h1>
+  <div id="chat"></div>
+  <div id="barra">
+    <input id="texto" placeholder="Escribe tu pregunta..." disabled autocomplete="off">
+    <button id="enviar" disabled>Enviar</button>
+  </div>
+  <div id="estado">Iniciando conversacion...</div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const inputTexto = document.getElementById("texto");
+    const btnEnviar = document.getElementById("enviar");
+    const estado = document.getElementById("estado");
+    let ws = null;
+
+    function pintar(autor, contenido) {
+      const fila = document.createElement("div");
+      fila.className = "msg " + autor;
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = contenido;
+      fila.appendChild(bubble);
+      chat.appendChild(fila);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function iniciar() {
+      const clienteId = "cliente_" + Math.random().toString(36).slice(2, 8);
+      const resp = await fetch("/chat/conversaciones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cliente_id: clienteId }),
+      });
+      const data = await resp.json();
+
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      ws = new WebSocket(`${proto}://${location.host}/ws/chat/${data.conversacion_id}`);
+
+      ws.onopen = () => {
+        estado.textContent = "Conectado · conversacion " + data.conversacion_id;
+        inputTexto.disabled = false;
+        btnEnviar.disabled = false;
+        inputTexto.focus();
+      };
+      ws.onmessage = (ev) => {
+        const m = JSON.parse(ev.data);
+        pintar(m.autor, m.contenido);
+      };
+      ws.onclose = () => {
+        estado.textContent = "Conexion cerrada.";
+        inputTexto.disabled = true;
+        btnEnviar.disabled = true;
+      };
+    }
+
+    function enviar() {
+      const texto = inputTexto.value.trim();
+      if (!texto || !ws) return;
+      ws.send(texto);
+      inputTexto.value = "";
+    }
+
+    btnEnviar.onclick = enviar;
+    inputTexto.addEventListener("keydown", (e) => { if (e.key === "Enter") enviar(); });
+
+    iniciar();
+  </script>
+</body>
+</html>

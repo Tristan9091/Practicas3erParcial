@@ -1,0 +1,67 @@
+:root {
+  --brand: #5b4cdb; /* color principal de la tienda */
+  --brand-oscuro: #4a3bc4; /* variante para hover */
+}
+
+/* ---- Color de marca (reemplaza a las clases de color de Bootstrap) ---- */
+.bg-brand {
+  background-color: var(--brand) !important;
+}
+.text-brand {
+  color: var(--brand) !important;
+}
+
+.btn-brand {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.btn-brand:hover {
+  background-color: var(--brand-oscuro);
+  border-color: var(--brand-oscuro);
+  color: #fff;
+}
+
+/* ---- Catálogo ---- */
+.producto-img {
+  height: 200px;
+  object-fit: cover; /* recorta la imagen para que todas midan igual */
+}
+
+/* ---- Carrito ---- */
+.carrito-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* ---- Tabla de admin ---- */
+.admin-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* ---- Chat ---- */
+.chat-mensajes {
+  height: 320px;
+  overflow-y: auto; /* scroll cuando hay muchos mensajes */
+  background-color: #f8f9fa;
+}
+.chat-burbuja {
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 12px;
+}
+.chat-autor {
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+/* Pestañas activas con el color de marca */
+.nav-tabs .nav-link.active {
+  color: var(--brand);
+  font-weight: 600;
+}

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PuzzleStore — Administración</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link href="css/styles.css" rel="stylesheet" />
+  </head>
+  <body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container">
+        <span class="navbar-brand fw-bold">🧩 PuzzleStore · Admin</span>
+        <div class="d-flex align-items-center gap-3">
+          <span
+            class="navbar-text text-white-50 small"
+            id="usuario-email"
+          ></span>
+          <button class="btn btn-outline-light btn-sm" id="btn-salir">
+            Salir
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container py-4">
+      <!-- Pestañas del backoffice -->
+      <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item">
+          <button
+            class="nav-link active"
+            data-bs-toggle="tab"
+            data-bs-target="#tab-productos"
+          >
+            📦 Productos
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            data-bs-toggle="tab"
+            data-bs-target="#tab-ordenes"
+          >
+            🧾 Órdenes
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            data-bs-toggle="tab"
+            data-bs-target="#tab-usuarios"
+          >
+            👤 Usuarios
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            data-bs-toggle="tab"
+            data-bs-target="#tab-chat"
+          >
+            💬 Chat
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- ===== PRODUCTOS ===== -->
+        <div class="tab-pane fade show active" id="tab-productos">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h4 m-0">Catálogo</h2>
+            <button class="btn btn-brand" id="btn-nuevo-producto">
+              + Nuevo producto
+            </button>
+          </div>
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle m-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Imagen</th>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Vendedor</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-productos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== ÓRDENES ===== -->
+        <div class="tab-pane fade" id="tab-ordenes">
+          <h2 class="h4 mb-3">Gestión de órdenes</h2>
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle m-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-ordenes"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== USUARIOS ===== -->
+        <div class="tab-pane fade" id="tab-usuarios">
+          <h2 class="h4 mb-3">Gestión de usuarios</h2>
+          <p class="text-muted">
+            Promueve usuarios a administrador u operador. El cambio aplica la
+            próxima vez que el usuario inicie sesión.
+          </p>
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle m-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-usuarios"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== CHAT (lado agente) ===== -->
+        <div class="tab-pane fade" id="tab-chat">
+          <h2 class="h4 mb-3">Conversaciones escaladas</h2>
+          <p class="text-muted">
+            Aquí llegan los mensajes que el bot no supo responder. Responde a
+            cada cliente.
+          </p>
+          <div id="chat-admin-lista" class="row g-3"></div>
+          <p id="chat-admin-vacio" class="text-muted">Esperando mensajes...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL para crear / editar producto -->
+    <div class="modal fade" id="modal-producto" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modal-titulo">Nuevo producto</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="modal-mensaje" class="alert d-none"></div>
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" id="prod-nombre" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descripción</label>
+              <textarea
+                id="prod-descripcion"
+                class="form-control"
+                rows="2"
+              ></textarea>
+            </div>
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label">Precio</label>
+                <input
+                  type="number"
+                  id="prod-precio"
+                  class="form-control"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label">Stock</label>
+                <input
+                  type="number"
+                  id="prod-stock"
+                  class="form-control"
+                  min="0"
+                />
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Vendedor</label>
+              <input type="text" id="prod-vendedor" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Imagen del producto</label>
+              <input
+                type="file"
+                id="prod-imagen"
+                class="form-control"
+                accept="image/*"
+              />
+              <img
+                id="prod-preview"
+                class="img-thumbnail mt-2 d-none"
+                style="max-height: 140px"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+            <button class="btn btn-brand" id="btn-guardar-producto">
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+  </body>
+</html>
